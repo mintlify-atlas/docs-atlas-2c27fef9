@@ -1,0 +1,65 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "simpE",
+  "projectDescription": "A simple benchmarking tool for evaluating small LLMs across instruction following, string manipulation, and arithmetic tasks",
+  "theme": "aspen",
+  "primaryColor": "#4A90E2",
+  "lightColor": "#7CB4F5",
+  "darkColor": "#2E5C8A",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "installation"
+        ]
+      },
+      {
+        "group": "Benchmarks",
+        "pages": [
+          "benchmarks/overview",
+          "benchmarks/string-reversal",
+          "benchmarks/integer-addition",
+          "benchmarks/string-rehearsal"
+        ]
+      },
+      {
+        "group": "Usage",
+        "pages": [
+          "usage/running-benchmarks",
+          "usage/analyzing-results",
+          "usage/configuration"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api/cli-commands",
+          "api/configuration-options",
+          "api/output-format"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Benchmark LLMs with four distinct evaluation tasks",
+    "Support for OpenAI-compatible APIs and LM-Studio",
+    "Reasoning model support with configurable effort levels",
+    "Detailed JSON output with timing and accuracy metrics",
+    "Interactive result analysis with statistical insights"
+  ],
+  "publicApiSurface": [
+    "simpe - Run benchmark suite",
+    "analyze - Analyze benchmark results",
+    "string_reversal() - Test string reversal capability",
+    "add_two_ints() - Test integer addition with large numbers",
+    "string_rehearsal() - Test exact string repetition",
+    "nresponse() - Execute API call with streaming support",
+    "console class - Terminal UI for benchmark progress",
+    "analyze_acc() - Calculate accuracy percentages",
+    "count_reasoning_patterns() - Analyze reasoning traces",
+    "reasoning_lenth_stats() - Statistical analysis of reasoning output"
+  ]
+}
