@@ -1,0 +1,336 @@
+---
+title: Output Format
+description: JSON structure and format for simpE benchmark results and logs
+---
+
+## Result File
+
+Benchmark results are saved to JSON files in the `results/` directory.
+
+### File Naming
+
+```
+result_{model}_{timestamp}.json
+```
+
+- `{model}` - The model name with forward slashes removed (e.g., `gpt-4` or `deepseek-r132b`)
+- `{timestamp}` - Run start time in format `YYYY-MM-DD_HH-MM-SS`
+
+**Example:** `result_gpt-4_2026-03-03_14-30-45.json`
+
+### JSON Structure
+
+The result file contains two main sections: `header` and `benchmarkresults`.
+
+```json
+{
+  "header": {
+    "runstarted": "2026-03-03 14:30:45",
+    "suggested_thinkinglevel": "low",
+    "model_selected": "gpt-4",
+    "max_output_tokens": 512
+  },
+  "benchmarkresults": {
+    "string_reversal": { ... },
+    "add_two_ints": { ... },
+    "string_rehearsal": { ... }
+  }
+}
+```
+
+## Header Format
+
+The header is built by the `build_header()` function (main.py:110-122) and contains metadata about the benchmark run.
+
+<ResponseField name="header" type="object">
+  Metadata about the benchmark run configuration and timing.
+  
+  <Expandable title="properties">
+    <ResponseField name="runstarted" type="string">
+      Timestamp when the benchmark run started, in format `YYYY-MM-DD HH:MM:SS`.
+    </ResponseField>
+    
+    <ResponseField name="suggested_thinkinglevel" type="string">
+      The reasoning effort level configured for this run. One of: `"low"`, `"medium"`, or `"high"`.
+    </ResponseField>
+    
+    <ResponseField name="model_selected" type="string">
+      The model identifier that was configured in `llm` variable. May be empty string if using currently loaded model.
+    </ResponseField>
+    
+    <ResponseField name="max_output_tokens" type="int">
+      The maximum number of output tokens configured for model responses.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Benchmark Results Structure
+
+The `benchmarkresults` object contains results for three benchmark types. Each benchmark has the same structure.
+
+<ResponseField name="benchmarkresults" type="object">
+  Contains results for all benchmark tests.
+  
+  <Expandable title="properties">
+    <ResponseField name="string_reversal" type="object">
+      Results from the String Reversal benchmark. See [Benchmark Object](#benchmark-object) for structure.
+    </ResponseField>
+    
+    <ResponseField name="add_two_ints" type="object">
+      Results from the Integer Addition benchmark. See [Benchmark Object](#benchmark-object) for structure.
+    </ResponseField>
+    
+    <ResponseField name="string_rehearsal" type="object">
+      Results from the String Rehearsal benchmark. See [Benchmark Object](#benchmark-object) for structure.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Benchmark Object
+
+Each benchmark type follows this structure:
+
+```json
+{
+  "test_type": "String Reversal",
+  "tries": 100,
+  "results": [
+    { ... },
+    { ... }
+  ]
+}
+```
+
+<ResponseField name="test_type" type="string">
+  Human-readable name of the benchmark test. One of:
+  - `"String Reversal"` - Tests reversing random strings
+  - `"Add two intigers"` - Tests adding two large integers (note: typo in source)
+  - `"String Rehearsal"` - Tests repeating strings exactly
+</ResponseField>
+
+<ResponseField name="tries" type="int">
+  The number of test iterations configured for this benchmark run.
+</ResponseField>
+
+<ResponseField name="results" type="array">
+  Array of individual test result objects. See [Test Result Object](#test-result-object) for structure.
+</ResponseField>
+
+## Test Result Object
+
+Each individual test result contains the input, output, timing, and status information.
+
+### String Reversal Result
+
+```json
+{
+  "string": "aB3xYz",
+  "response": "zYx3Ba",
+  "duration_seconds": 2.451,
+  "reasoning": "I need to reverse this string...",
+  "model": "gpt-4",
+  "status": "success"
+}
+```
+
+<ResponseField name="string" type="string">
+  The random input string that was provided to the model to reverse (2-30 characters).
+</ResponseField>
+
+<ResponseField name="response" type="string">
+  The model's actual response output.
+</ResponseField>
+
+<ResponseField name="duration_seconds" type="float">
+  Time in seconds that the model took to generate the response, including any reasoning time.
+</ResponseField>
+
+<ResponseField name="reasoning" type="string" optional>
+  The model's reasoning trace, if the model supports reasoning and produced a reasoning output. Only present for reasoning-capable models.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  The actual model identifier returned by the API for this response.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Test result status. One of:
+  - `"success"` - Model output matched expected result
+  - `"fail"` - Model output did not match expected result
+</ResponseField>
+
+### Integer Addition Result
+
+```json
+{
+  "int1": 123456789012345,
+  "int2": 987654321098765,
+  "response": "1111111110111110",
+  "duration_seconds": 3.125,
+  "reasoning": "Let me add these numbers...",
+  "model": "gpt-4",
+  "status": "success"
+}
+```
+
+<ResponseField name="int1" type="int">
+  The first random integer provided to the model (2-30 digits).
+</ResponseField>
+
+<ResponseField name="int2" type="int">
+  The second random integer provided to the model (2-30 digits).
+</ResponseField>
+
+<ResponseField name="response" type="string">
+  The model's response, which should contain only the sum.
+</ResponseField>
+
+<ResponseField name="duration_seconds" type="float">
+  Time in seconds that the model took to generate the response.
+</ResponseField>
+
+<ResponseField name="reasoning" type="string" optional>
+  The model's reasoning trace, if available.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  The actual model identifier returned by the API.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Test result status (`"success"` or `"fail"`).
+</ResponseField>
+
+### String Rehearsal Result
+
+```json
+{
+  "string": "aB3xYz7qWe...",
+  "response": "aB3xYz7qWe...",
+  "duration_seconds": 1.832,
+  "reasoning": "I will repeat this string exactly...",
+  "model": "gpt-4",
+  "status": "success"
+}
+```
+
+<ResponseField name="string" type="string">
+  The random input string that was provided to the model to repeat exactly (10-500 characters).
+</ResponseField>
+
+<ResponseField name="response" type="string">
+  The model's actual response output.
+</ResponseField>
+
+<ResponseField name="duration_seconds" type="float">
+  Time in seconds that the model took to generate the response.
+</ResponseField>
+
+<ResponseField name="reasoning" type="string" optional>
+  The model's reasoning trace, if available.
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  The actual model identifier returned by the API.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Test result status (`"success"` or `"fail"`).
+</ResponseField>
+
+## Complete Example
+
+```json
+{
+  "header": {
+    "runstarted": "2026-03-03 14:30:45",
+    "suggested_thinkinglevel": "medium",
+    "model_selected": "gpt-4",
+    "max_output_tokens": 512
+  },
+  "benchmarkresults": {
+    "string_reversal": {
+      "test_type": "String Reversal",
+      "tries": 100,
+      "results": [
+        {
+          "string": "aB3xYz",
+          "response": "zYx3Ba",
+          "duration_seconds": 2.451,
+          "reasoning": "I need to reverse the string 'aB3xYz' character by character...",
+          "model": "gpt-4-0125-preview",
+          "status": "success"
+        }
+      ]
+    },
+    "add_two_ints": {
+      "test_type": "Add two intigers",
+      "tries": 100,
+      "results": [
+        {
+          "int1": 123456789,
+          "int2": 987654321,
+          "response": "1111111110",
+          "duration_seconds": 3.125,
+          "reasoning": "Adding 123456789 and 987654321...",
+          "model": "gpt-4-0125-preview",
+          "status": "success"
+        }
+      ]
+    },
+    "string_rehearsal": {
+      "test_type": "String Rehearsal",
+      "tries": 100,
+      "results": [
+        {
+          "string": "aB3xYz7qWe9RtYuIoP",
+          "response": "aB3xYz7qWe9RtYuIoP",
+          "duration_seconds": 1.832,
+          "reasoning": "I will repeat the string exactly as provided...",
+          "model": "gpt-4-0125-preview",
+          "status": "success"
+        }
+      ]
+    }
+  }
+}
+```
+
+## Log Files
+
+Logs are written to the `logs/` directory.
+
+### Log File Naming
+
+- **Timestamped Log:** `log_YYYY-MM-DD_HH-MM-SS.txt` - Persistent log for each run
+- **Recent Log:** `log_recent.txt` - Cleared and overwritten on each new run for easy access
+
+### Log Format
+
+Each log entry has the format:
+
+```
+[YYYY-MM-DD_HH-MM-SS] message
+```
+
+### Log Contents
+
+Log files include:
+- Benchmark start messages (e.g., "Starting new string reversal eval with 100 tries")
+- Individual test start messages (e.g., "Starting test 0")
+- Success messages (e.g., "Success: 1")
+- Failure messages with expected vs. actual output
+- Reasoning traces from models (prefixed with `[Reasoning]:`)
+- API errors and exceptions
+
+**Example:**
+
+```
+[2026-03-03_14-30-45] Starting new string reversal eval with 100 tries
+[2026-03-03_14-30-47] Starting test 0
+[2026-03-03_14-30-50] [Reasoning]: 
+I need to reverse the string 'aB3xYz' character by character...
+[2026-03-03_14-30-50] Success: 1
+[2026-03-03_14-30-50] Starting test 1
+[2026-03-03_14-30-53] Test 2 failed. Expected: dcbA, Got: Abcd
+```

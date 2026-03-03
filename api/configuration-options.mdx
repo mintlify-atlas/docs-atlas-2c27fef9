@@ -1,0 +1,115 @@
+---
+title: Configuration Options
+description: Configuration variables for simpE benchmark runs
+---
+
+All configuration is done by editing variables at the top of `main.py` (lines 14-23). These variables control API connection, model behavior, and test execution.
+
+## API Configuration
+
+<ParamField path="llm" type="string" default='""'>
+  The model identifier to use for benchmarking. Leave empty (`""`) to select the currently loaded model. This only works with LM-Studio when left empty.
+  
+  **Example:**
+  ```python
+  llm = "gpt-4"
+  llm = ""  # Uses currently loaded model in LM-Studio
+  ```
+</ParamField>
+
+<ParamField path="baseurl" type="string" default='"http://127.0.0.1:1234/v1"'>
+  The base URL for the OpenAI-compatible API endpoint. Default points to a local LM-Studio instance.
+  
+  **Example:**
+  ```python
+  baseurl = "http://127.0.0.1:1234/v1"  # LM-Studio default
+  baseurl = "https://api.openai.com/v1"  # OpenAI API
+  ```
+</ParamField>
+
+<ParamField path="reasoning_effort" type="string" default='"low"'>
+  Controls the reasoning effort level for models that support reasoning. Affects how much the model thinks before responding.
+  
+  **Valid values:**
+  - `"low"` - Minimal reasoning effort
+  - `"medium"` - Moderate reasoning effort
+  - `"high"` - Maximum reasoning effort
+  
+  **Example:**
+  ```python
+  reasoning_effort = "low"
+  reasoning_effort = "medium"
+  reasoning_effort = "high"
+  ```
+  
+  This value is passed to the API as `reasoning: {"effort": reasoning_effort, "summary": "detailed"}`
+</ParamField>
+
+## Test Execution
+
+<ParamField path="tries" type="int" default="100">
+  The number of test iterations to run for each benchmark. Each benchmark (String Reversal, Integer Addition, String Rehearsal) will execute this many times.
+  
+  **Example:**
+  ```python
+  tries = 100  # Runs 100 tests per benchmark (300 total tests)
+  tries = 50   # Runs 50 tests per benchmark (150 total tests)
+  ```
+</ParamField>
+
+<ParamField path="timeout_time" type="int" default="400">
+  Time in seconds to wait before stopping the current answer. Designed to prevent multi-thousand token responses when the LLM gets into a death spiral.
+  
+  **Note:** This feature is marked as "Todo: Implement this" in the source code (line 20-21) and is not currently enforced.
+  
+  **Example:**
+  ```python
+  timeout_time = 400  # 400 seconds (6.67 minutes)
+  ```
+</ParamField>
+
+<ParamField path="max_tokens" type="int" default="512">
+  Maximum number of output tokens the model can generate per response. The default is calculated as `512 * 1`.
+  
+  **Recommendation:** You may want to increase this value when using reasoning LLMs, as they often require more tokens for their reasoning traces.
+  
+  **Note:** There's a todo (line 22-23) to implement automatic increase/disabling for reasoning LLMs after a warmup run.
+  
+  **Example:**
+  ```python
+  max_tokens = 512      # Standard output limit
+  max_tokens = 1024     # Increased for reasoning models
+  max_tokens = 2048     # High limit for complex reasoning
+  ```
+  
+  This value is passed to the API as `max_output_tokens=max_tokens`
+</ParamField>
+
+## Directory Configuration
+
+These are defined at the top of `main.py` (lines 10-11) but are not typically modified:
+
+- `logs_directory = "logs"` - Directory where log files are written
+- `results_directory = "results"` - Directory where result JSON files are saved
+
+## Configuration Example
+
+Here's a complete configuration example for a high-effort reasoning model:
+
+```python
+# Model and API settings
+llm = "deepseek-r1:32b"
+baseurl = "http://127.0.0.1:1234/v1"
+reasoning_effort = "high"
+
+# Test execution settings
+tries = 200
+timeout_time = 600
+max_tokens = 2048
+```
+
+## Notes
+
+- All configuration changes require editing the source file `main.py`
+- Changes take effect the next time you run the `simpe` command
+- The configuration is saved in the result file header for reference (see [Output Format](/api/output-format))

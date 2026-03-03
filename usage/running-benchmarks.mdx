@@ -1,0 +1,145 @@
+---
+title: Running Benchmarks
+description: Learn how to run benchmarks with simpE and understand the output
+---
+
+## Running a Benchmark
+
+To run benchmarks with simpE, simply execute the main script:
+
+```bash
+python main.py
+```
+
+This will automatically run all three benchmark tests:
+- String Reversal
+- Integer Addition
+- String Rehearsal
+
+## Understanding the Console Output
+
+The simpE CLI provides real-time feedback during benchmark execution through an interactive terminal UI.
+
+### Progress Indicators
+
+While benchmarks are running, you'll see a live progress display:
+
+```
+String Reversal 45/100  87.50%
+Thinking... 2.34s
+```
+
+This shows:
+- **Benchmark name**: Current test being executed
+- **Progress**: Number of completed tries out of total tries (e.g., `45/100`)
+- **Success rate**: Percentage of successful attempts (e.g., `87.50%`)
+- **Status**: Current activity and elapsed time
+
+### Real-Time Feedback
+
+The console class provides several types of feedback:
+
+#### Thinking Time
+When the model is processing a prompt, you'll see:
+```
+Thinking... X.XXs
+```
+
+This updates in real-time, showing how long the model has been thinking. The timer updates every 0.01 seconds.
+
+#### Completion Status
+When a single test completes:
+```
+Done thinking after X.XXs
+```
+
+#### Benchmark Summary
+After each benchmark completes, you'll see a summary:
+```
+COMPLETE String Reversal: 100/100
+Results: 85.00%
+```
+
+## Logs Directory
+
+All benchmark runs are logged to the `logs/` directory:
+
+### Log Files
+
+- **`log_YYYY-MM-DD_HH-MM-SS.txt`**: Timestamped log file for each run
+- **`log_recent.txt`**: Always contains the most recent run (cleared on each new run)
+
+Each log entry includes:
+- Timestamp of the event
+- Test start/completion messages
+- Success/failure status with expected vs. actual results
+- Reasoning traces (when using reasoning models)
+- API errors and warnings
+
+### Log Entry Format
+
+```
+[2026-03-03_14-30-45] Starting new string reversal eval with 100 tries
+[2026-03-03_14-30-46] Starting test 0
+[2026-03-03_14-30-47] [Reasoning]: 
+<reasoning trace content>
+[2026-03-03_14-30-48] Success: 1
+```
+
+## Results Directory
+
+Benchmark results are saved as JSON files in the `results/` directory:
+
+### Result Files
+
+Files are named: `result_<model-name>_YYYY-MM-DD_HH-MM-SS.json`
+
+Example: `result_qwen2.5-32b-instruct_2026-03-03_14-30-45.json`
+
+### Result File Structure
+
+Each result file contains:
+
+```json
+{
+  "header": {
+    "runstarted": "2026-03-03 14:30:45",
+    "suggested_thinkinglevel": "low",
+    "model_selected": "",
+    "max_output_tokens": 512
+  },
+  "benchmarkresults": {
+    "string_reversal": {
+      "test_type": "String Reversal",
+      "tries": 100,
+      "results": [
+        {
+          "string": "aBc123",
+          "duration_seconds": 2.34,
+          "reasoning": "<reasoning trace if available>",
+          "response": "321cBa",
+          "model": "qwen2.5-32b-instruct",
+          "status": "success"
+        }
+      ]
+    },
+    "add_two_ints": { ... },
+    "string_rehearsal": { ... }
+  }
+}
+```
+
+### Result Fields
+
+For each test attempt, the following information is recorded:
+
+- **Test inputs**: The generated test data (string, integers, etc.)
+- **duration_seconds**: Time taken to complete the test
+- **reasoning**: Reasoning trace (only present when using reasoning models)
+- **response**: The model's output
+- **model**: Model identifier returned by the API
+- **status**: Either `"success"` or `"fail"`
+
+<Note>
+If the benchmark fails to write the results file due to an error, the complete JSON output will be printed to the console as a fallback.
+</Note>

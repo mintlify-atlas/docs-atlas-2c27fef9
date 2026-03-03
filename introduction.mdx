@@ -1,0 +1,179 @@
+---
+title: Introduction to simpE
+description: A simple yet powerful CLI tool for benchmarking small language models across four fundamental capability areas
+---
+
+## What is simpE?
+
+simpE is a lightweight benchmarking tool designed to evaluate small language models (LLMs) on fundamental cognitive tasks. Whether you're testing models locally with LM-Studio or evaluating reasoning capabilities, simpE provides quick, reliable metrics on model performance.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get up and running with simpE in minutes
+  </Card>
+  <Card
+    title="Installation Guide"
+    icon="download"
+    href="/installation"
+  >
+    Detailed setup instructions and configuration
+  </Card>
+  <Card
+    title="Benchmark Types"
+    icon="chart-line"
+    href="#benchmark-types"
+  >
+    Learn about the four core benchmark areas
+  </Card>
+  <Card
+    title="Analyzing Results"
+    icon="magnifying-glass-chart"
+    href="#analyzing-results"
+  >
+    Understand your benchmark data
+  </Card>
+</CardGroup>
+
+## Benchmark Types
+
+simpE evaluates language models across four fundamental capability areas:
+
+### 1. Instruction Following
+
+Tests the model's ability to follow precise instructions without adding extraneous information. This benchmark measures how well a model can adhere to strict output requirements.
+
+### 2. String Reversal
+
+Evaluates basic pattern manipulation by asking the model to reverse strings of varying lengths (2-30 characters). This tests:
+- Character-level attention
+- Sequential processing
+- Ability to follow simple transformations
+
+```python
+# Example from the source code (main.py:147-152)
+stringlenth = random.randint(2, 30)
+text = ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(stringlenth))
+
+prompt = f"Provide the following text in reverse order. Don't output anything else. Only output the reversed string without anything additional, not even quotes: \"{text}\""
+```
+
+### 3. Big Integer Addition
+
+Challenges the model with arithmetic operations on large integers (2-30 digits each). This benchmark reveals:
+- Mathematical reasoning capabilities
+- Handling of large numbers
+- Ability to perform calculations without explanation
+
+```python
+# Example from the source code (main.py:214-223)
+int1_length = random.randint(2, 30)
+int2_length = random.randint(2, 30)
+
+int1 = int(''.join(random.choice(string.digits) for _ in range(int1_length)))
+int2 = int(''.join(random.choice(string.digits) for _ in range(int2_length)))
+
+prompt = f"Provide the sum of the two numbers. Don't output anything else. Only output the sum of the two numbers without anything additional. Only output the final number, no calculation, no explanation, just the final number without any text.: \"{int1}\" \"{int2}\""
+```
+
+### 4. String Rehearsal
+
+Tests the model's ability to reproduce longer strings (10-500 characters) exactly as provided. This measures:
+- Context retention
+- Exact replication capabilities
+- Attention to detail
+
+```python
+# Example from the source code (main.py:292-297)
+stringlenth = random.randint(10, 500)
+text = ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(stringlenth))
+
+prompt = f"Repeat the following string exactly without modifying it. Don't output anything else. Only output the string without anything additional, not even quotes: \"{text}\""
+```
+
+## Key Features
+
+### Real-time Progress Tracking
+
+simpE provides live console output showing:
+- Current benchmark progress (e.g., "String Reversal 45/100")
+- Success rate percentage updated in real-time
+- Thinking time for reasoning models
+- Completion status for each benchmark
+
+### Reasoning Model Support
+
+Built-in support for models with reasoning capabilities:
+- Configurable reasoning effort levels (low, medium, high)
+- Automatic capture of reasoning traces
+- Detailed reasoning statistics in analysis
+
+### Comprehensive Logging
+
+All benchmark runs generate detailed logs:
+- Timestamped execution logs in `logs/` directory
+- JSON results with full response data in `results/` directory
+- Recent log file for quick access to latest run
+
+### Flexible Configuration
+
+Easily adjust benchmark parameters in `main.py`:
+
+```python
+tries = 100  # Number of tests per benchmark
+timeout_time = 400  # Timeout in seconds
+max_tokens = 512  # Maximum output tokens
+reasoning_effort = "low"  # Reasoning level: low, medium, high
+baseurl = "http://127.0.0.1:1234/v1"  # LM-Studio API endpoint
+```
+
+## Analyzing Results
+
+After running benchmarks, use the built-in analysis tool:
+
+```bash
+uv run analyze
+```
+
+The analyzer provides:
+- **Accuracy metrics** - Success percentage for each benchmark
+- **Reasoning pattern analysis** - Frequency of key phrases like "wait", "actually", "hold on"
+- **Statistical insights** - Average/median/min/max for reasoning trace lengths and word counts
+
+<Note>
+Results are saved as JSON files in the `results/` directory with timestamps and model information for easy comparison across runs.
+</Note>
+
+## Why simpE?
+
+<CardGroup cols={2}>
+  <Card title="Simple Setup" icon="bolt">
+    No complex configuration - just install and run
+  </Card>
+  <Card title="Local-First" icon="house">
+    Works with LM-Studio for complete privacy
+  </Card>
+  <Card title="Fast Iteration" icon="forward-fast">
+    Quick benchmarks help you iterate on model selection
+  </Card>
+  <Card title="Detailed Insights" icon="microscope">
+    Rich logging and analysis for deep dives
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Steps>
+  <Step title="Install simpE">
+    Follow the [installation guide](/installation) to set up simpE and configure your API endpoint
+  </Step>
+  <Step title="Run Your First Benchmark">
+    Check out the [quick start guide](/quickstart) to run your first benchmark suite
+  </Step>
+  <Step title="Analyze Results">
+    Learn how to interpret and compare benchmark results
+  </Step>
+</Steps>

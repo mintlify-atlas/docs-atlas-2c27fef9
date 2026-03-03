@@ -1,0 +1,98 @@
+---
+title: "Benchmarks Overview"
+description: "Overview of simpE's benchmark suite for evaluating LLM capabilities"
+---
+
+The simpE CLI tool includes a comprehensive benchmark suite designed to evaluate Large Language Models (LLMs) on fundamental tasks. These benchmarks test core capabilities that are essential for reliable model performance.
+
+## What Benchmarks Test
+
+The benchmark suite evaluates models on three key dimensions:
+
+- **String Manipulation**: Tests the model's ability to accurately manipulate text
+- **Mathematical Reasoning**: Validates arithmetic capabilities with large integers
+- **Instruction Following**: Measures how precisely models can follow exact output requirements
+
+Each benchmark runs multiple iterations with randomly generated inputs to provide statistically meaningful results.
+
+## Available Benchmarks
+
+<CardGroup cols={3}>
+  <Card title="String Reversal" icon="rotate" href="/benchmarks/string-reversal">
+    Tests string reversal capability with random alphanumeric strings
+  </Card>
+  
+  <Card title="Integer Addition" icon="plus" href="/benchmarks/integer-addition">
+    Evaluates large integer arithmetic accuracy
+  </Card>
+  
+  <Card title="String Rehearsal" icon="repeat" href="/benchmarks/string-rehearsal">
+    Validates exact string repetition without modification
+  </Card>
+</CardGroup>
+
+## General Configuration
+
+All benchmarks share common configuration parameters defined in `main.py`:
+
+<ParamField path="tries" type="int" default="100">
+  Number of iterations to run for each benchmark. More tries provide more statistically significant results.
+</ParamField>
+
+<ParamField path="timeout_time" type="int" default="400">
+  Time in seconds to wait before stopping a response. Prevents infinite loops when models enter "death spirals".
+</ParamField>
+
+<ParamField path="max_tokens" type="int" default="512">
+  Maximum output tokens allowed per response. Can be increased for reasoning models.
+</ParamField>
+
+<ParamField path="reasoning_effort" type="string" default="low">
+  Reasoning effort level for models that support it (e.g., "low", "medium", "high").
+</ParamField>
+
+## How Benchmarks Work
+
+Each benchmark follows this workflow:
+
+1. **Generate Random Input**: Creates random test data (strings, integers, etc.)
+2. **Construct Prompt**: Builds a specific prompt instructing the model on the expected output
+3. **API Call**: Sends the prompt to the LLM via OpenAI-compatible API
+4. **Validation**: Compares the model's response against expected output
+5. **Logging**: Records success/failure, duration, and reasoning (if available)
+
+<Note>
+  All benchmark results are saved to JSON files in the `results/` directory with detailed logs in the `logs/` directory.
+</Note>
+
+## Result Structure
+
+Each benchmark produces a structured JSON output containing:
+
+```json
+{
+  "test_type": "Benchmark Name",
+  "tries": 100,
+  "results": [
+    {
+      "status": "success" | "fail",
+      "duration_seconds": 1.234,
+      "response": "model output",
+      "model": "model-name",
+      "reasoning": "reasoning trace (if available)"
+    }
+  ]
+}
+```
+
+## Success Criteria
+
+Benchmarks use strict validation:
+
+- **Exact Match**: Most benchmarks require exact string matching (after stripping whitespace)
+- **No Extra Output**: Models must not include explanations, quotes, or additional text
+- **Numeric Validation**: Integer benchmarks validate that output is parseable as a number
+
+<Warning>
+  Models that produce explanations or additional text will fail even if the correct answer is included somewhere in the response.
+</Warning>

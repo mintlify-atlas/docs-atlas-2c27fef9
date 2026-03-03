@@ -1,0 +1,161 @@
+---
+title: Analyzing Results
+description: Use the analyze command to extract insights from benchmark results
+---
+
+## Running the Analyzer
+
+The `analyze_results.py` script provides comprehensive analysis of benchmark results:
+
+```bash
+python analyze_results.py
+```
+
+## Interactive File Selection
+
+When you run the analyzer, it uses `questionary` to provide an interactive file selection interface:
+
+```
+? Which file do you want to get stats about?
+  results/result_model1_2026-03-03_14-30-45.json
+> results/result_model2_2026-03-03_15-22-10.json
+  results/result_model3_2026-03-03_16-45-33.json
+```
+
+Use arrow keys to navigate and press Enter to select a result file for analysis.
+
+## Analysis Types
+
+The analyzer automatically runs three types of analysis on the selected result file:
+
+### 1. Accuracy Analysis
+
+The `analyze_acc()` function calculates the success rate for each benchmark:
+
+```
+string_reversal:
+85.0%
+add_two_ints:
+92.5%
+string_rehearsal:
+78.0%
+```
+
+This shows the percentage of successful attempts for each test type.
+
+**How it works:**
+- Counts the number of `"success"` status entries
+- Divides by total number of attempts
+- Displays as a percentage
+
+### 2. Reasoning Pattern Analysis
+
+The `count_reasoning_patterns()` function searches for specific patterns in reasoning traces:
+
+```
+string_reversal:
+wait found 0.45 times per response
+pause found 0.12 times per response
+hold on found 0.08 times per response
+actually found 1.23 times per response
+no, found 0.34 times per response
+```
+
+**Default patterns checked:**
+- `"wait"`
+- `"pause"`
+- `"hold on"`
+- `"actually"`
+- `"no,"`
+
+These patterns indicate self-correction and deliberation in the model's reasoning process. Higher counts suggest more metacognitive processing.
+
+<Note>
+This analysis only works with result files that contain reasoning traces. If no reasoning data is found, you'll see:
+```
+Reasoningdata could not be extracted. Please check '<filename>' for reasoning traces.
+```
+</Note>
+
+### 3. Reasoning Length Statistics
+
+The `reasoning_lenth_stats()` function provides detailed statistics about reasoning traces:
+
+```
+string_reversal:
+Average characters: 234.56
+Average word count: 45.23
+
+Median characters: 220.0
+Median word count: 42.0
+
+Minimum characters: 89
+Minimum word count: 15
+
+Maximum characters: 567
+Maximum word count: 112
+
+Average word length: 5.18
+Median word length: 5.0
+```
+
+**Metrics calculated:**
+
+<ParamField path="Average characters" type="float">
+  Mean character count across all reasoning traces
+</ParamField>
+
+<ParamField path="Average word count" type="float">
+  Mean word count across all reasoning traces
+</ParamField>
+
+<ParamField path="Median characters" type="float">
+  Median character count (middle value when sorted)
+</ParamField>
+
+<ParamField path="Median word count" type="float">
+  Median word count (middle value when sorted)
+</ParamField>
+
+<ParamField path="Minimum characters" type="int">
+  Shortest reasoning trace in characters
+</ParamField>
+
+<ParamField path="Minimum word count" type="int">
+  Shortest reasoning trace in words
+</ParamField>
+
+<ParamField path="Maximum characters" type="int">
+  Longest reasoning trace in characters
+</ParamField>
+
+<ParamField path="Maximum word count" type="int">
+  Longest reasoning trace in words
+</ParamField>
+
+<ParamField path="Average word length" type="float">
+  Mean length of individual words across all traces
+</ParamField>
+
+<ParamField path="Median word length" type="float">
+  Median length of individual words
+</ParamField>
+
+## Customizing Pattern Analysis
+
+You can modify the patterns being searched by editing `analyze_results.py`:
+
+```python
+count_reasoning_patterns(selection, ["wait", "pause", "hold on", "actually", "no,"])
+```
+
+Change the list to include any patterns you want to track. Pattern matching is case-insensitive.
+
+## Understanding the Results
+
+These analyses help you understand:
+
+1. **Model reliability**: Higher accuracy percentages indicate better performance
+2. **Reasoning behavior**: Pattern frequency shows how the model thinks through problems
+3. **Reasoning efficiency**: Length statistics reveal whether the model is concise or verbose
+4. **Model comparison**: Run analysis on multiple result files to compare different models or configurations

@@ -1,0 +1,179 @@
+---
+title: Configuration
+description: Configure API settings, reasoning parameters, and benchmark options
+---
+
+## Configuration Variables
+
+All configuration is done by editing variables at the top of `main.py` (lines 14-23). There is no separate configuration file.
+
+## API Configuration
+
+### Base URL
+
+<ParamField path="baseurl" type="string" default="http://127.0.0.1:1234/v1">
+  The API endpoint URL. Default is configured for LM Studio running locally.
+  
+  **Examples:**
+  - LM Studio: `"http://127.0.0.1:1234/v1"`
+  - OpenAI-compatible API: `"https://api.example.com/v1"`
+</ParamField>
+
+```python
+baseurl = "http://127.0.0.1:1234/v1"
+```
+
+### Model Selection
+
+<ParamField path="llm" type="string" default="">
+  The model identifier to use for benchmarks.
+  
+  **Special behavior:**
+  - Leave empty (`""`) to automatically use the currently loaded model in LM Studio
+  - Set to a specific model name for other OpenAI-compatible APIs
+</ParamField>
+
+```python
+# Leave empty to select currently loaded model (works with LM-Studio)
+llm = ""
+
+# Or specify a model explicitly:
+# llm = "gpt-4"
+# llm = "qwen2.5-32b-instruct"
+```
+
+## Reasoning Settings
+
+<ParamField path="reasoning_effort" type="string" default="low">
+  Controls the reasoning effort level for models that support reasoning.
+  
+  **Valid values:**
+  - `"low"`: Minimal reasoning, faster responses
+  - `"medium"`: Balanced reasoning depth
+  - `"high"`: Maximum reasoning effort, slower but more thoughtful
+</ParamField>
+
+```python
+reasoning_effort = "low"
+```
+
+This setting is passed to the API's `reasoning.effort` parameter and recorded in the result file header.
+
+## Benchmark Parameters
+
+### Number of Tries
+
+<ParamField path="tries" type="int" default={100}>
+  Number of test attempts to run for each benchmark.
+  
+  Higher values provide more statistical confidence but take longer to complete.
+</ParamField>
+
+```python
+tries = 100
+```
+
+### Timeout
+
+<ParamField path="timeout_time" type="int" default={400}>
+  Maximum time to wait for a response in seconds.
+  
+  Prevents the benchmark from hanging if the model enters a "death spiral" generating thousands of tokens.
+  
+  <Warning>This feature is not yet implemented (see TODO in source code).</Warning>
+</ParamField>
+
+```python
+timeout_time = 400  # in seconds
+```
+
+### Maximum Tokens
+
+<ParamField path="max_tokens" type="int" default={512}>
+  Maximum number of output tokens the model can generate per response.
+  
+  **Recommendations:**
+  - Default (512): Suitable for most models
+  - Higher values: May be needed for reasoning models that produce longer traces
+  - Lower values: Can prevent verbose or runaway responses
+</ParamField>
+
+```python
+max_tokens = 512 * 1  # might want to increase this with reasoning llms
+```
+
+## Environment Setup
+
+### LM Studio Configuration
+
+If using LM Studio:
+
+1. Start LM Studio and load your desired model
+2. Enable the local API server (usually runs on `http://127.0.0.1:1234`)
+3. Leave `llm = ""` in the configuration
+4. The currently loaded model will be automatically selected
+
+### OpenAI-Compatible API Setup
+
+For other OpenAI-compatible APIs:
+
+1. Set `baseurl` to your API endpoint
+2. Set `llm` to the specific model identifier
+3. Ensure your API supports the extended reasoning format if using reasoning features
+
+```python
+baseurl = "https://api.openai.com/v1"
+llm = "gpt-4"
+reasoning_effort = "medium"
+```
+
+<Note>
+You may need to set API keys via environment variables or modify the `OpenAI` client initialization in the code, depending on your API provider's requirements.
+</Note>
+
+## Directory Configuration
+
+<ParamField path="logs_directory" type="string" default="logs">
+  Directory where log files are stored. Created automatically if it doesn't exist.
+</ParamField>
+
+<ParamField path="results_directory" type="string" default="results">
+  Directory where result JSON files are stored. Created automatically if it doesn't exist.
+</ParamField>
+
+```python
+logs_directory = "logs"
+results_directory = "results"
+```
+
+## Example Configurations
+
+### High-Effort Reasoning with More Tries
+
+```python
+llm = ""
+baseurl = "http://127.0.0.1:1234/v1"
+reasoning_effort = "high"
+tries = 200
+max_tokens = 1024
+```
+
+### Quick Testing Configuration
+
+```python
+llm = ""
+baseurl = "http://127.0.0.1:1234/v1"
+reasoning_effort = "low"
+tries = 10
+max_tokens = 256
+```
+
+### Production Benchmarking
+
+```python
+llm = "qwen2.5-32b-instruct"
+baseurl = "https://api.example.com/v1"
+reasoning_effort = "medium"
+tries = 500
+max_tokens = 768
+```

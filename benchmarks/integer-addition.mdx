@@ -1,0 +1,158 @@
+---
+title: "Integer Addition Benchmark"
+description: "Tests LLM capability to add large integers accurately"
+---
+
+The integer addition benchmark evaluates a model's arithmetic capabilities by testing addition of large randomly-generated integers. This benchmark is particularly challenging because it tests numerical reasoning with integers that can be up to 30 digits long.
+
+## What It Tests
+
+This benchmark assesses:
+
+- **Large Integer Arithmetic**: Ability to correctly add numbers with 2-30 digits
+- **Numerical Accuracy**: Precise calculation without rounding or approximation errors
+- **Output Format Compliance**: Returning only the numeric result without explanations
+
+## Implementation Details
+
+The benchmark is implemented in the `add_two_ints()` function (`main.py:194-269`):
+
+### Random Integer Generation
+
+For each iteration, two random integers are generated:
+
+```python
+int1_length = random.randint(2, 30)
+int2_length = random.randint(2, 30)
+
+int1 = int(''.join(random.choice(string.digits) for _ in range(int1_length)))
+int2 = int(''.join(random.choice(string.digits) for _ in range(int2_length)))
+```
+
+<ParamField path="int1_length" type="int">
+  Random length between 2 and 30 digits for the first integer
+</ParamField>
+
+<ParamField path="int2_length" type="int">
+  Random length between 2 and 30 digits for the second integer
+</ParamField>
+
+<Warning>
+  Integers can be up to 30 digits long, which is significantly larger than standard 64-bit integer limits. This tests whether models can handle arithmetic beyond typical programming language integer sizes.
+</Warning>
+
+### Prompt Template
+
+The model receives this exact prompt:
+
+```python
+prompt = f"Provide the sum of the two numbers. Don't output anything else. Only output the sum of the two numbers without anything additional. Only output the final number, no calculation, no explanation, just the final number without any text.: \"{int1}\" \"{int2}\""
+```
+
+<Note>
+  The prompt explicitly instructs the model to output **only** the numeric sum with no calculations, working, explanations, or additional text.
+</Note>
+
+## Success Criteria
+
+The benchmark validates responses using integer comparison with error handling:
+
+```python
+errval = False
+
+try:
+    if int(calresult["response"].strip()) == int1 + int2:    
+        success = True
+    else:
+        success = False
+except (ValueError, TypeError):
+    success = False
+    log_message(f"Test {t+1} failed. Output contained non-numeric characters")
+    errval = True
+```
+
+A response is marked as **success** only if:
+
+- The output can be parsed as an integer (no non-numeric characters)
+- The parsed integer exactly equals `int1 + int2`
+- Leading and trailing whitespace is stripped before parsing
+
+### Error Handling
+
+The benchmark handles two types of failures:
+
+1. **ValueError/TypeError**: Output contains non-numeric characters or cannot be parsed
+2. **Incorrect Sum**: Output is numeric but mathematically incorrect
+
+<Warning>
+  Responses with explanations, calculations, or any non-numeric characters will fail with a ValueError and be logged as containing non-numeric characters.
+</Warning>
+
+## Example
+
+### Input Integers
+```python
+int1 = 123456789012345
+int2 = 987654321098765
+```
+
+### Prompt Sent to Model
+```
+Provide the sum of the two numbers. Don't output anything else. 
+Only output the sum of the two numbers without anything additional. 
+Only output the final number, no calculation, no explanation, 
+just the final number without any text.: "123456789012345" "987654321098765"
+```
+
+### Expected Output
+```
+1111111110111110
+```
+
+### Result Recording
+
+Each test result is recorded with:
+
+```json
+{
+  "int1": 123456789012345,
+  "int2": 987654321098765,
+  "duration_seconds": 2.456,
+  "response": "1111111110111110",
+  "model": "model-name",
+  "status": "success",
+  "reasoning": "optional reasoning trace"
+}
+```
+
+## Failure Cases
+
+Common failure modes include:
+
+1. **Showing Work**: `123456789012345 + 987654321098765 = 1111111110111110`
+2. **Explanation**: `The sum is 1111111110111110`
+3. **Incorrect Calculation**: `1111111110111111` (off by one)
+4. **Scientific Notation**: `1.11111111e15` (not accepted)
+5. **Rounding Errors**: `1111111110111000` (lost precision)
+6. **Non-numeric Output**: `One trillion, one hundred eleven billion...`
+
+## Performance Metrics
+
+The benchmark tracks:
+
+- **Success Rate**: Percentage of correct additions across all tries
+- **Duration**: Time taken for each calculation
+- **Error Types**: Whether failures are due to parsing errors or incorrect arithmetic
+- **Reasoning**: Optional reasoning traces from reasoning-capable models
+
+<Note>
+  This benchmark is particularly revealing for identifying models that struggle with large number arithmetic or have trouble following strict output format requirements.
+</Note>
+
+## Difficulty Factors
+
+The challenge of this benchmark increases with:
+
+- **Number Size**: Larger integers (approaching 30 digits) are more difficult
+- **Carry Operations**: Numbers requiring many carry operations are harder
+- **Output Discipline**: Models must resist explaining their work

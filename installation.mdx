@@ -1,0 +1,497 @@
+---
+title: Installation Guide
+description: Detailed setup instructions for simpE, including prerequisites, configuration, and verification steps
+---
+
+## Prerequisites
+
+Before installing simpE, ensure you have the following:
+
+### Required
+
+<CardGroup cols={2}>
+  <Card title="Python 3.14+" icon="python">
+    simpE requires Python 3.14 or higher
+  </Card>
+  <Card title="uv Package Manager" icon="package">
+    Fast Python package and project manager
+  </Card>
+  <Card title="LM-Studio" icon="brain">
+    Local LLM inference engine with API support
+  </Card>
+  <Card title="Git" icon="git-alt">
+    For cloning the repository
+  </Card>
+</CardGroup>
+
+### System Requirements
+
+- **Operating System**: Linux, macOS, or Windows (with WSL)
+- **RAM**: 8GB minimum (16GB+ recommended for larger models)
+- **Storage**: 2GB for simpE + model storage space
+- **Network**: Internet connection for initial setup
+
+## Installation Steps
+
+<Steps>
+  <Step title="Install uv Package Manager">
+    Install uv using the official installer:
+
+    <CodeGroup>
+    ```bash macOS/Linux
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+
+    ```bash Windows (PowerShell)
+    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+    ```
+    </CodeGroup>
+
+    Verify the installation:
+
+    ```bash
+    uv --version
+    ```
+
+    Expected output:
+    ```plaintext
+    uv 0.x.x (or higher)
+    ```
+  </Step>
+
+  <Step title="Install LM-Studio">
+    Download and install LM-Studio from [lmstudio.ai](https://lmstudio.ai).
+
+    After installation:
+    1. Launch LM-Studio
+    2. Download a model (e.g., Llama 3.2 1B, Qwen 2.5 3B)
+    3. Load the model
+    4. Enable the local API server
+
+    <Note>
+    The default API endpoint is `http://127.0.0.1:1234/v1`. You can verify it's running by visiting `http://127.0.0.1:1234` in your browser.
+    </Note>
+  </Step>
+
+  <Step title="Clone simpE Repository">
+    Clone the simpE repository from GitHub:
+
+    ```bash
+    git clone https://github.com/Dariton4000/simpE.git
+    ```
+
+    Navigate to the project directory:
+
+    ```bash
+    cd simpE
+    ```
+
+    Verify the repository contents:
+
+    ```bash
+    ls -la
+    ```
+
+    You should see:
+    ```plaintext
+    -rw-r--r-- README.md
+    -rw-r--r-- main.py
+    -rw-r--r-- analyze_results.py
+    -rw-r--r-- pyproject.toml
+    -rw-r--r-- uv.lock
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Use uv to install all required dependencies:
+
+    ```bash
+    uv sync
+    ```
+
+    This will:
+    - Create a virtual environment (`.venv`)
+    - Install Python 3.14+ if not already available
+    - Install required packages from `pyproject.toml`:
+      - `openai` - For API communication
+      - `questionary` - For interactive CLI prompts
+
+    <Note>
+    The `uv sync` command reads from `pyproject.toml`:
+    ```toml
+    [project]
+    name = "simpe"
+    version = "0.1.0"
+    requires-python = ">=3.14"
+    dependencies = [
+        "openai",
+        "questionary>=2.1.1",
+    ]
+    ```
+    </Note>
+  </Step>
+</Steps>
+
+## Configuration
+
+### Basic Configuration
+
+Open `main.py` in your favorite editor and configure the following parameters near the top of the file (lines 14-23):
+
+```python main.py
+# Model Configuration
+llm = ""  # Leave empty to auto-select the loaded LM-Studio model
+baseurl = "http://127.0.0.1:1234/v1"  # LM-Studio API endpoint
+reasoning_effort = "low"  # Reasoning level: "low", "medium", "high"
+
+# Benchmark Parameters
+tries = 100  # Number of tests per benchmark
+timeout_time = 400  # Timeout in seconds (not yet implemented)
+max_tokens = 512 * 1  # Maximum output tokens
+```
+
+### Configuration Options Explained
+
+<AccordionGroup>
+  <Accordion title="llm - Model Selection">
+    **Type**: `string`
+    
+    **Default**: `""` (empty string)
+
+    Leave empty to automatically use the currently loaded model in LM-Studio. This is the recommended setting.
+
+    ```python
+    llm = ""  # Auto-select loaded model
+    ```
+
+    <Note>
+    The actual model name will be captured from API responses and used for naming result files.
+    </Note>
+  </Accordion>
+
+  <Accordion title="baseurl - API Endpoint">
+    **Type**: `string`
+    
+    **Default**: `"http://127.0.0.1:1234/v1"`
+
+    The OpenAI-compatible API endpoint for your LLM server.
+
+    ```python
+    baseurl = "http://127.0.0.1:1234/v1"  # LM-Studio default
+    # baseurl = "http://localhost:8080/v1"  # Custom port
+    # baseurl = "http://192.168.1.100:1234/v1"  # Remote server
+    ```
+  </Accordion>
+
+  <Accordion title="reasoning_effort - Reasoning Level">
+    **Type**: `string`
+    
+    **Default**: `"low"`
+    
+    **Options**: `"low"`, `"medium"`, `"high"`
+
+    Controls the reasoning effort for models that support explicit reasoning modes.
+
+    ```python
+    reasoning_effort = "low"  # Fast, basic reasoning
+    # reasoning_effort = "medium"  # Balanced
+    # reasoning_effort = "high"  # Deep, thorough reasoning
+    ```
+
+    <Warning>
+    Higher reasoning efforts significantly increase response time and token usage.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="tries - Test Count">
+    **Type**: `int`
+    
+    **Default**: `100`
+
+    Number of tests to run per benchmark type.
+
+    ```python
+    tries = 100  # Standard evaluation
+    # tries = 10  # Quick test
+    # tries = 1000  # Comprehensive evaluation
+    ```
+
+    <Note>
+    Total runtime = `tries` × 3 benchmarks × average response time
+    </Note>
+  </Accordion>
+
+  <Accordion title="max_tokens - Token Limit">
+    **Type**: `int`
+    
+    **Default**: `512`
+
+    Maximum number of tokens the model can generate per response.
+
+    ```python
+    max_tokens = 512 * 1  # Standard models
+    # max_tokens = 512 * 2  # Reasoning models
+    # max_tokens = 512 * 4  # Deep reasoning models
+    ```
+
+    <Warning>
+    Set this too low and reasoning models may be cut off mid-response.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+### Advanced Configuration
+
+For advanced users, additional configuration options are available:
+
+```python main.py
+# Directory Configuration (lines 10-11)
+logs_directory = "logs"  # Where to store execution logs
+results_directory = "results"  # Where to save benchmark results
+
+# Timeout Configuration (line 20)
+timeout_time = 400  # Seconds before timing out a response (not yet implemented)
+```
+
+## Verification
+
+Verify your installation is working correctly:
+
+<Steps>
+  <Step title="Test the CLI Entry Point">
+    Run simpE without executing benchmarks:
+
+    ```bash
+    uv run python -c "from main import main; print('Import successful')"
+    ```
+
+    Expected output:
+    ```plaintext
+    Import successful
+    ```
+  </Step>
+
+  <Step title="Verify LM-Studio Connection">
+    Test the API endpoint:
+
+    ```bash
+    curl http://127.0.0.1:1234/v1/models
+    ```
+
+    Expected output (example):
+    ```json
+    {
+      "object": "list",
+      "data": [
+        {
+          "id": "meta-llama-llama-3.2-1b-instruct",
+          "object": "model",
+          "created": 1709493600,
+          "owned_by": "lm-studio"
+        }
+      ]
+    }
+    ```
+
+    <Warning>
+    If you get a connection error, make sure LM-Studio is running with the API server enabled.
+    </Warning>
+  </Step>
+
+  <Step title="Run a Quick Test">
+    Modify `tries` to 1 in `main.py` for a quick verification:
+
+    ```python
+    tries = 1  # Just for testing
+    ```
+
+    Run the benchmark:
+
+    ```bash
+    uv run simpe
+    ```
+
+    You should see output similar to:
+    ```plaintext
+    Directory 'logs' created successfully.
+    Directory 'results' created successfully.
+    String Reversal 1/1  0.00%
+    Thinking... 2.34s
+    COMPLETE String Reversal: 1/1
+    Results: 100.00%
+    ```
+
+    <Note>
+    Don't forget to change `tries` back to 100 (or your preferred value) after testing.
+    </Note>
+  </Step>
+
+  <Step title="Verify Results and Logs">
+    Check that output directories were created:
+
+    ```bash
+    ls -la
+    ```
+
+    You should see:
+    ```plaintext
+    drwxr-xr-x logs/
+    drwxr-xr-x results/
+    ```
+
+    Verify files were created:
+
+    ```bash
+    ls logs/ results/
+    ```
+
+    Expected output:
+    ```plaintext
+    logs/:
+    log_2026-03-03_14-23-45.txt
+    log_recent.txt
+
+    results/:
+    result_model-name_2026-03-03_14-23-45.json
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+  <Accordion title="'uv' command not found">
+    **Problem**: Shell can't find the uv command after installation.
+
+    **Solution**: Restart your terminal or manually add uv to your PATH:
+
+    ```bash
+    # Add to ~/.bashrc or ~/.zshrc
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
+
+    Then reload:
+    ```bash
+    source ~/.bashrc  # or source ~/.zshrc
+    ```
+  </Accordion>
+
+  <Accordion title="Connection refused to LM-Studio">
+    **Problem**: API endpoint not accessible.
+
+    **Solutions**:
+    1. Verify LM-Studio is running
+    2. Check that a model is loaded
+    3. Ensure the API server is enabled (look for the server toggle in LM-Studio)
+    4. Try accessing `http://127.0.0.1:1234` in your browser
+    5. Check if another application is using port 1234
+  </Accordion>
+
+  <Accordion title="Python version mismatch">
+    **Problem**: System Python is older than 3.14.
+
+    **Solution**: uv will automatically download and use Python 3.14+. Verify with:
+
+    ```bash
+    uv run python --version
+    ```
+
+    Should output:
+    ```plaintext
+    Python 3.14.x
+    ```
+  </Accordion>
+
+  <Accordion title="Permission denied creating directories">
+    **Problem**: Can't create `logs/` or `results/` directories.
+
+    **Solution**: Ensure you have write permissions in the simpE directory:
+
+    ```bash
+    chmod +w .
+    ```
+
+    Or run from a directory where you have write access.
+  </Accordion>
+
+  <Accordion title="Import errors for dependencies">
+    **Problem**: Missing `openai` or `questionary` modules.
+
+    **Solution**: Re-run the sync command:
+
+    ```bash
+    uv sync --reinstall
+    ```
+
+    This will reinstall all dependencies from scratch.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Run your first benchmark suite
+  </Card>
+  <Card
+    title="Understanding Benchmarks"
+    icon="book"
+    href="/introduction#benchmark-types"
+  >
+    Learn about the four benchmark types
+  </Card>
+  <Card
+    title="Analysis Guide"
+    icon="chart-line"
+    href="/introduction#analyzing-results"
+  >
+    Deep dive into result analysis
+  </Card>
+  <Card
+    title="GitHub Repository"
+    icon="github"
+    href="https://github.com/Dariton4000/simpE"
+  >
+    View source code and contribute
+  </Card>
+</CardGroup>
+
+## System Architecture
+
+Understanding how simpE works:
+
+```plaintext
+┌─────────────────┐
+│   simpE CLI     │
+│   (main.py)     │
+└────────┬────────┘
+         │
+         ├──► Logs Directory
+         │    (execution logs)
+         │
+         ├──► Results Directory
+         │    (JSON benchmark data)
+         │
+         └──► LM-Studio API
+              (http://127.0.0.1:1234/v1)
+                     │
+              ┌──────┴──────┐
+              │   LM-Studio │
+              │   (Local)   │
+              └─────────────┘
+                     │
+              ┌──────┴──────┐
+              │  LLM Model  │
+              │  (Loaded)   │
+              └─────────────┘
+```
+
+<Note>
+simpE is designed to work with any OpenAI-compatible API endpoint, not just LM-Studio. You can point it to other local inference engines or even remote APIs by changing the `baseurl` parameter.
+</Note>

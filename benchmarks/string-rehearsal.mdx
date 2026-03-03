@@ -1,0 +1,162 @@
+---
+title: "String Rehearsal Benchmark"
+description: "Tests LLM capability to repeat strings exactly without modification"
+---
+
+The string rehearsal benchmark evaluates a model's ability to repeat a given string exactly as provided, without any modifications. This tests instruction following and the model's tendency to "improve" or modify input unnecessarily.
+
+## What It Tests
+
+This benchmark assesses:
+
+- **Exact Repetition**: Ability to output text character-for-character without changes
+- **Instruction Adherence**: Following the directive to not modify the input
+- **Self-Control**: Resisting the urge to correct, format, or explain
+- **Long String Handling**: Managing strings up to 500 characters
+
+<Note>
+  This benchmark is particularly revealing because many LLMs are trained to be "helpful" by reformatting or explaining, which causes them to fail this simple task.
+</Note>
+
+## Implementation Details
+
+The benchmark is implemented in the `string_rehearsal()` function (`main.py:272-335`):
+
+### Random String Generation
+
+For each iteration, a random alphanumeric string is generated:
+
+```python
+stringlenth = random.randint(10, 500)
+text = ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) 
+               for _ in range(stringlenth))
+```
+
+<ParamField path="stringlenth" type="int">
+  Random length between 10 and 500 characters
+</ParamField>
+
+<ParamField path="text" type="string">
+  Randomly generated string containing:
+  - Uppercase letters (A-Z)
+  - Lowercase letters (a-z) 
+  - Digits (0-9)
+</ParamField>
+
+<Warning>
+  Unlike the string reversal benchmark which uses 2-30 characters, this benchmark tests much longer strings (up to 500 characters), making exact repetition more challenging.
+</Warning>
+
+### Prompt Template
+
+The model receives this exact prompt:
+
+```python
+prompt = f"Repeat the following string exactly without modifying it. Don't output anything else. Only output the string without anything additional, not even quotes: \"{text}\""
+```
+
+<Note>
+  The prompt uses the word "exactly" and explicitly states "without modifying it" to emphasize that no changes should be made.
+</Note>
+
+## Success Criteria
+
+The benchmark validates responses using exact string matching:
+
+```python
+if calresult["response"].strip() == text:    
+    success = True
+else:
+    success = False
+```
+
+A response is marked as **success** only if:
+
+- The output exactly matches the input string character-for-character
+- Leading and trailing whitespace is stripped before comparison
+- No characters are added, removed, or modified
+- No additional text, quotes, or explanations are present
+
+## Example
+
+### Input String
+```
+aB7Xm9KpQrStUvWxYz123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+```
+
+### Prompt Sent to Model
+```
+Repeat the following string exactly without modifying it. Don't output anything else. 
+Only output the string without anything additional, not even quotes: 
+"aB7Xm9KpQrStUvWxYz123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+```
+
+### Expected Output
+```
+aB7Xm9KpQrStUvWxYz123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+```
+
+### Result Recording
+
+Each test result is recorded with:
+
+```json
+{
+  "string": "aB7Xm9KpQrStUvWxYz123456789ABCDEFGHIJ...",
+  "duration_seconds": 1.789,
+  "response": "aB7Xm9KpQrStUvWxYz123456789ABCDEFGHIJ...",
+  "model": "model-name",
+  "status": "success",
+  "reasoning": "optional reasoning trace"
+}
+```
+
+## Failure Cases
+
+Common failure modes include:
+
+1. **Added Quotes**: `"aB7Xm9KpQrStUvWxYz..."` (includes quotes)
+2. **Explanatory Text**: `Here is the string: aB7Xm9KpQrStUvWxYz...`
+3. **Formatting Changes**: Adding line breaks or spacing for "readability"
+4. **Character Substitution**: Changing characters deemed "confusing" (like `0` vs `O`)
+5. **Truncation**: Not outputting the full string for very long inputs
+6. **Case Changes**: Converting to all uppercase or lowercase
+7. **Unicode Issues**: Mangling or modifying character encoding
+
+<Warning>
+  This benchmark reveals models that have been over-trained to be "helpful" at the expense of following explicit instructions. Models that fail this often try to format or explain the output.
+</Warning>
+
+## Performance Metrics
+
+The benchmark tracks:
+
+- **Success Rate**: Percentage of exact repetitions across all tries
+- **Duration**: Time taken for each response (longer strings may take more time)
+- **Reasoning**: Optional reasoning traces from reasoning-capable models
+- **Failure Patterns**: Types of modifications models tend to make
+
+## Why This Matters
+
+String rehearsal is deceptively simple but tests critical capabilities:
+
+- **Literal Instruction Following**: Many tasks require exact output without interpretation
+- **API Integration**: Real-world APIs often require exact string formatting
+- **Data Processing**: ETL tasks need precise string handling
+- **Code Generation**: Programming requires exact syntax without "helpful" modifications
+
+<Note>
+  Models with high reasoning capabilities sometimes perform worse on this benchmark because they overthink the task. The best performance comes from models that can suppress their instinct to "improve" the output.
+</Note>
+
+## String Length Impact
+
+Performance typically degrades with string length:
+
+- **10-50 characters**: Most models perform well
+- **50-200 characters**: Moderate difficulty, some models start adding explanations
+- **200-500 characters**: High difficulty, truncation and formatting changes more common
+
+<Note>
+  Results are logged to `logs/log_[timestamp].txt` and aggregated in `results/result_[model]_[timestamp].json` along with the other benchmark results.
+</Note>

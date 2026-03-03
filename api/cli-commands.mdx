@@ -1,0 +1,91 @@
+---
+title: CLI Commands
+description: Reference for simpE CLI commands and usage
+---
+
+## simpe
+
+The main command to run the simpE benchmark suite.
+
+```bash
+simpe
+```
+
+**Entry Point:** `main:main` (from `main.py`)
+
+### Behavior
+
+When you run `simpe`, the tool:
+
+1. Creates `logs/` and `results/` directories if they don't exist
+2. Removes the previous `log_recent.txt` file
+3. Runs three benchmark tests in sequence:
+   - **String Reversal**: Tests the model's ability to reverse random strings (2-30 characters)
+   - **Integer Addition**: Tests the model's ability to add two large integers (2-30 digits each)
+   - **String Rehearsal**: Tests the model's ability to repeat strings exactly (10-500 characters)
+4. Executes each benchmark for the configured number of tries (default: 100)
+5. Saves results to `results/result_{model}_{timestamp}.json`
+6. Logs all activity to `logs/log_{timestamp}.txt` and `logs/log_recent.txt`
+
+### Configuration
+
+The `simpe` command is configured by editing the variables at the top of `main.py` (lines 14-23). See [Configuration Options](/api/configuration-options) for details.
+
+### Output
+
+The command provides real-time console output showing:
+- Current benchmark name
+- Progress (completed/total tries)
+- Success percentage
+- Thinking time (when model is reasoning)
+
+Final results are saved in JSON format. See [Output Format](/api/output-format) for the complete structure.
+
+---
+
+## analyze
+
+The analysis command to review and get statistics from benchmark results.
+
+```bash
+analyze
+```
+
+**Entry Point:** `analyze_results:main` (from `analyze_results.py`)
+
+### Behavior
+
+When you run `analyze`, the tool:
+
+1. Scans the `results/` directory for all `.json` result files
+2. Presents an interactive selection menu to choose which result file to analyze
+3. Displays comprehensive statistics:
+
+#### Accuracy Analysis
+Shows success percentage for each benchmark type:
+- String Reversal accuracy
+- Integer Addition accuracy  
+- String Rehearsal accuracy
+
+#### Reasoning Pattern Analysis
+Counts occurrences of specific reasoning patterns per response:
+- "wait"
+- "pause"
+- "hold on"
+- "actually"
+- "no,"
+
+#### Reasoning Length Statistics
+For each benchmark, displays:
+- **Character Statistics**: Average, median, minimum, and maximum characters in reasoning traces
+- **Word Count Statistics**: Average, median, minimum, and maximum word count
+- **Word Length**: Average and median word length across all reasoning traces
+
+### Requirements
+
+- At least one result file in the `results/` directory
+- Result files must contain reasoning traces for full statistics (optional for accuracy analysis)
+
+### Interactive Interface
+
+Uses `questionary` to provide a user-friendly selection interface with arrow key navigation.

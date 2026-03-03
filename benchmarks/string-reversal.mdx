@@ -1,0 +1,126 @@
+---
+title: "String Reversal Benchmark"
+description: "Tests LLM capability to reverse random alphanumeric strings"
+---
+
+The string reversal benchmark evaluates a model's ability to accurately reverse strings of varying lengths. This tests basic string manipulation capabilities and instruction following.
+
+## What It Tests
+
+This benchmark assesses:
+
+- **Character-level Manipulation**: Ability to process strings character by character
+- **Output Precision**: Following instructions to output only the reversed string
+- **Consistency**: Performance across multiple random inputs
+
+## Implementation Details
+
+The benchmark is implemented in the `string_reversal()` function (`main.py:128-191`):
+
+### Random String Generation
+
+For each iteration, a random alphanumeric string is generated:
+
+```python
+stringlenth = random.randint(2, 30)
+text = ''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) 
+               for _ in range(stringlenth))
+```
+
+<ParamField path="stringlenth" type="int">
+  Random length between 2 and 30 characters
+</ParamField>
+
+<ParamField path="text" type="string">
+  Randomly generated string containing:
+  - Uppercase letters (A-Z)
+  - Lowercase letters (a-z)
+  - Digits (0-9)
+</ParamField>
+
+### Prompt Template
+
+The model receives this exact prompt:
+
+```python
+prompt = f"Provide the following text in reverse order. Don't output anything else. Only output the reversed string without anything additional, not even quotes: \"{text}\""
+```
+
+<Note>
+  The prompt explicitly instructs the model to output **only** the reversed string with no additional text, explanations, or quotes.
+</Note>
+
+## Success Criteria
+
+The benchmark validates responses using exact string matching:
+
+```python
+if calresult["response"].strip() == text[::-1]:
+    success = True
+else:
+    success = False
+```
+
+A response is marked as **success** only if:
+
+- The output exactly matches the reversed input string (using Python's `[::-1]` slice)
+- Leading and trailing whitespace is stripped before comparison
+- No additional characters, quotes, or explanations are present
+
+<Warning>
+  Any extra output beyond the reversed string will cause the test to fail. This includes common model behaviors like adding quotes, explanations, or formatting.
+</Warning>
+
+## Example
+
+### Input String
+```
+aB7Xm9K
+```
+
+### Prompt Sent to Model
+```
+Provide the following text in reverse order. Don't output anything else. 
+Only output the reversed string without anything additional, not even quotes: "aB7Xm9K"
+```
+
+### Expected Output
+```
+K9mX7Ba
+```
+
+### Result Recording
+
+Each test result is recorded with:
+
+```json
+{
+  "string": "aB7Xm9K",
+  "duration_seconds": 1.234,
+  "response": "K9mX7Ba",
+  "model": "model-name",
+  "status": "success",
+  "reasoning": "optional reasoning trace"
+}
+```
+
+## Failure Cases
+
+Common failure modes include:
+
+1. **Extra Quotes**: `"K9mX7Ba"` (includes quotes)
+2. **Explanation**: `The reversed string is: K9mX7Ba`
+3. **Wrong Reversal**: `aB7KmX9` (incorrect character order)
+4. **Case Errors**: `k9mx7ba` (wrong case)
+
+## Performance Metrics
+
+The benchmark tracks:
+
+- **Success Rate**: Percentage of correct reversals across all tries
+- **Duration**: Time taken for each response
+- **Reasoning**: Optional reasoning traces from reasoning-capable models
+
+<Note>
+  Results are logged to `logs/log_[timestamp].txt` and aggregated in `results/result_[model]_[timestamp].json`
+</Note>
