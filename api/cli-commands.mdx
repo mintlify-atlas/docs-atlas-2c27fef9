@@ -8,14 +8,14 @@ description: Reference for simpE CLI commands and usage
 The main command to run the simpE benchmark suite.
 
 ```bash
-simpe
+uv run simpe
 ```
 
 **Entry Point:** `main:main` (from `main.py`)
 
 ### Behavior
 
-When you run `simpe`, the tool:
+When you run `uv run simpe`, the tool:
 
 1. Creates `logs/` and `results/` directories if they don't exist
 2. Removes the previous `log_recent.txt` file
@@ -29,7 +29,7 @@ When you run `simpe`, the tool:
 
 ### Configuration
 
-The `simpe` command is configured by editing the variables at the top of `main.py` (lines 14-23). See [Configuration Options](/api/configuration-options) for details.
+The command is configured by editing the variables at the top of `main.py` (lines 14-23). See [Configuration Options](/api/configuration-options) for details.
 
 ### Output
 
@@ -48,14 +48,14 @@ Final results are saved in JSON format. See [Output Format](/api/output-format) 
 The analysis command to review and get statistics from benchmark results.
 
 ```bash
-analyze
+uv run analyze
 ```
 
 **Entry Point:** `analyze_results:main` (from `analyze_results.py`)
 
 ### Behavior
 
-When you run `analyze`, the tool:
+When you run `uv run analyze`, the tool:
 
 1. Scans the `results/` directory for all `.json` result files
 2. Presents an interactive selection menu to choose which result file to analyze

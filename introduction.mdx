@@ -1,6 +1,6 @@
 ---
 title: Introduction to simpE
-description: A simple yet powerful CLI tool for benchmarking small language models across four fundamental capability areas
+description: A simple yet powerful CLI tool for benchmarking small language models across three fundamental capability areas
 ---
 
 ## What is simpE?
@@ -27,7 +27,7 @@ simpE is a lightweight benchmarking tool designed to evaluate small language mod
     icon="chart-line"
     href="#benchmark-types"
   >
-    Learn about the four core benchmark areas
+    Learn about the three core benchmark areas
   </Card>
   <Card
     title="Analyzing Results"
@@ -40,13 +40,9 @@ simpE is a lightweight benchmarking tool designed to evaluate small language mod
 
 ## Benchmark Types
 
-simpE evaluates language models across four fundamental capability areas:
+simpE evaluates language models across three fundamental capability areas:
 
-### 1. Instruction Following
-
-Tests the model's ability to follow precise instructions without adding extraneous information. This benchmark measures how well a model can adhere to strict output requirements.
-
-### 2. String Reversal
+### 1. String Reversal
 
 Evaluates basic pattern manipulation by asking the model to reverse strings of varying lengths (2-30 characters). This tests:
 - Character-level attention
@@ -61,7 +57,7 @@ text = ''.join(random.choice(string.ascii_uppercase + string.digits + string.asc
 prompt = f"Provide the following text in reverse order. Don't output anything else. Only output the reversed string without anything additional, not even quotes: \"{text}\""
 ```
 
-### 3. Big Integer Addition
+### 2. Big Integer Addition
 
 Challenges the model with arithmetic operations on large integers (2-30 digits each). This benchmark reveals:
 - Mathematical reasoning capabilities
@@ -79,7 +75,7 @@ int2 = int(''.join(random.choice(string.digits) for _ in range(int2_length)))
 prompt = f"Provide the sum of the two numbers. Don't output anything else. Only output the sum of the two numbers without anything additional. Only output the final number, no calculation, no explanation, just the final number without any text.: \"{int1}\" \"{int2}\""
 ```
 
-### 4. String Rehearsal
+### 3. String Rehearsal
 
 Tests the model's ability to reproduce longer strings (10-500 characters) exactly as provided. This measures:
 - Context retention
